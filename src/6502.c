@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "CPU.h"
+#include "6502.h"
 
+void reset()
+{
 
+}
