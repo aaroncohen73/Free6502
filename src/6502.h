@@ -32,7 +32,7 @@ struct PFLAGS
 {
     bit n; //Negative bit
     bit v; //Overflow bit
-    //Bits 5 - Only exists on stack, always 1
+    //Bit 5 - Only exists on stack, always 1
     //Bit 4 (b) - Only exists on stack, set to 1 if there by instruction, not interrupt
     bit d; //BCD bit
     bit i; //Interrupt priority level
@@ -145,6 +145,87 @@ void CLVf();
 void CLDf();
 void SEDf();
 
+void INCzpf();
+void INCzpxf();
+void INCabsf();
+void INCabsxf();
+
+void JMPabsf();
+void JMPindf();
+
+void JSRf();
+
+void LDAimmf();
+void LDAzpf();
+void LDAzpxf();
+void LDAabsf();
+void LDAabsxf();
+void LDAabsyf();
+void LDAindxf();
+void LDAindyf();
+
+void LDXimmf();
+void LDXzpf();
+void LDXzpyf();
+void LDXabsf();
+void LDXabsyf();
+
+void LDYimmf();
+void LDYzpf();
+void LDYzpxf();
+void LDYabsf();
+void LDYabsxf();
+
+void LSRaccf();
+void LSRzpf();
+void LSRzpxf();
+void LSRabsf();
+void LSRabsxf();
+
+void NOPf();
+
+void ORAimmf();
+void ORAzpf();
+void ORAzpxf();
+void ORAabsf();
+void ORAabsxf();
+void ORAabsyf();
+void ORAindxf();
+void ORAindyf();
+
+void TAXf();
+void TXAf();
+void DEXf();
+void INXf();
+void TAYf();
+void TYAf();
+void DEYf();
+void INYf();
+
+void ROLaccf();
+void ROLzpf();
+void ROLzpxf();
+void ROLabsf();
+void ROLabsxf();
+
+void ROLaccf();
+void ROLzpf();
+void ROLzpxf();
+void ROLabsf();
+void ROLabsxf();
+
+void RTIf();
+
+void RTSf();
+
+void STAzpf();
+void STAzpxf();
+void STAabsf();
+void STAabsxf();
+void STAabsyf();
+void STAindxf();
+void STAindyf();
+
 typedef struct
 {
     byte code;
@@ -244,6 +325,75 @@ struct INSTRUCTIONS
     opcode CLV = { .code = 0xb8, .op = &(CLVf), .len = 1, .time = 2 }; //CLear oVerflow
     opcode CLD = { .code = 0xd8, .op = &(CLDf), .len = 1, .time = 2 }; //CLear Decimal
     opcode SED = { .code = 0xf8, .op = &(SEDf), .len = 1, .time = 2 }; //SEt Decimal
+
+    //INCrement memory
+    opcode INCzp = { .code = 0xe6, .op = &(INCzpf), .len = 2, .time = 5 };
+    opcode INCzpx = { .code = 0xf6, .op = &(INCzpxf), .len = 2, .time = 6 };
+    opcode INCabs = { .code = 0xee, .op = &(INCabsf), .len = 3, .time = 6 };
+    opcode INCabsx = { .code = 0xfe, .op = &(INCabsxf), .len = 3, .time = 7 };
+
+    //JuMP to location
+    opcode JMPabs = { .code = 0x4c, .op = &(JMPabsf), .len = 3, .time = 3 };
+    opcode JMPind = { .code = 0x6c, .op = &(JMPindf), .len = 3, .time = 5 };
+
+    //Jump to SubRoutine
+    opcode JSR - { .code = 0x20, .op = &(JSRf), .len = 3, .time = 6 };
+
+    //LoaD Accumulator
+    opcode LDAimm = { .code = 0xa9, .op = &(LDAimmf), .len = 2, .time = 2 };
+    opcode LDAzp = { .code = 0xa5, .op = &(LDAzpf), .len = 2, .time = 3 };
+    opcode LDAzpx = { .code = 0xb5, .op = &(LDAzpxf), .len = 2, .time = 4 };
+    opcode LDAabs = { .code = 0xad, .op = &(LDAabsf), .len = 3, .time = 4 };
+    opcode LDAabsx = { .code = 0xbd, .op = &(LDAabsxf), .len = 3, .time = 4 };
+    opcode LDAabsy = { .code = 0xb9, .op = &(LDAabsyf), .len = 3, .time = 4 };
+    opcode LDAindx = { .code = 0xa1, .op = &(LDAindxf), .len = 2, .time = 6 };
+    opcode LDAindy = { .code = 0xb1, .op = &(LDAindyf), .len = 2, .time = 5 };
+
+    //LoaD X register
+    opcode LDXimm = { .code = 0xa2, .op = &(LDXimmf), .len = 2, .time = 2 };
+    opcode LDXzp = { .code = 0xa6, .op = &(LDXzpf), .len = 2, .time = 3 };
+    opcode LDXzpy = { .code = 0xb6, .op = &(LDXzpyf), .len = 2, .time = 4 };
+    opcode LDXabs = { .code = 0xae, .op = &(LDXabsf), .len = 3, .time = 4 };
+    opcode LDXabsy = { .code = 0xbe, .op = &(LDXabsyf), .len = 3, .time = 4 };
+
+    //LoaD Y register
+    opcode LDYimm = { .code = 0xa0, .op = &(LDYimmf), .len = 2, .time = 2 };
+    opcode LDYzp = { .code = 0xa4, .op = &(LDYzpf), .len = 2, .time = 3 };
+    opcode LDYzpx = { .code = 0xb4, .op = &(LDYzpxf), .len = 2, .time = 4 };
+    opcode LDYabs = { .code = 0xac, .op = &(LDYabsf), .len = 3, .time = 4 };
+    opcode LDYabsx = { .code = 0xbc, .op = &(LDYabsxf), .len = 3, .time = 4 };
+
+    //Logical Shift Right
+    opcode LSRacc = { .code = 0x4a, .op = &(LSRaccf), .len = 1, .time = 2 };
+    opcode LSRzp = { .code = 0x46, .op = &(LSRzpf), .len = 2, .time = 5 };
+    opcode LSRzpx = { .code = 0x56, .op = &(LSRzpxf), .len = 2, .time = 6 };
+    opcode LSRabs = { .code = 0x4e, .op = &(LSRabsf), .len = 3, .time = 6 };
+    opcode LSRabsx = { .code = 0x5e, .op = &(LSRabsxf), .len = 3, .time = 7 };
+
+    //No OPeration
+    opcode NOP = { .code = 0xea, .op = &(NOPf), .len = 1, .time = 2 };
+
+    //bitwise OR with Accumulator
+    opcode ORAimm = { .code = 0x09, .op = &(ORAimmf), .len = 2, .time = 2 };
+    opcode ORAzp = { .code = 0x05, .op = &(ORAzpf), .len = 2, .time = 3 };
+    opcode ORAzpx = { .code = 0x15, .op = &(ORAzpxf), .len = 2, .time = 4 };
+    opcode ORAabs = { .code = 0x0d, .op = &(ORAabsf), .len = 3, .time = 4 };
+    opcode ORAabsx = { .code = 0x1d, .op = &(ORAabsxf), .len = 3, .time = 4 };
+    opcode ORAabsy = { .code = 0x19, .op = &(ORAabsyf), .len = 3, .time = 4 };
+    opcode ORAindx = { .code = 0x01, .op = &(ORAindxf), .len = 2, .time = 6 };
+    opcode ORAindy = { .code = 0x11, .op = &(ORAindyf), .len = 2, .time = 5 };
+
+    //register instructions
+    opcode TAX = { .code = 0xaa, .op = &(TAXf), .len = 1, .time = 2 }; //Transfer A to X
+    opcode TXA = { .code = 0x8a, .op = &(TXAf), .len = 1, .time = 2 }; //Transfer X to A
+    opcode DEX = { .code = 0xca, .op = &(DEXf), .len = 1, .time = 2 }; //DEcrement X
+    opcode INX = { .code = 0xe8, .op = &(INXf), .len = 1, .time = 2 }; //INcrement X
+    opcode TAY = { .code = 0xa8, .op = &(TAYf), .len = 1, .time = 2 }; //Transfer A to Y
+    opcode TYA = { .code = 0x98, .op = &(TYAf), .len = 1, .time = 2 }; //Transfer Y to A
+    opcode DEY = { .code = 0x88, .op = &(DEYf), .len = 1, .time = 2 }; //DEcrement Y
+    opcode INY = { .code = 0xc8, .op = &(INYf), .len = 1, .time = 2 }; //INcrement Y
+
+
 }
 
 struct INSTRUCTIONS_EX {} //To be used for extensions
