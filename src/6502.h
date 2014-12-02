@@ -226,6 +226,21 @@ void STAabsyf();
 void STAindxf();
 void STAindyf();
 
+void TXSf();
+void TSXf();
+void PHAf();
+void PLAf();
+void PHPf();
+void PLPf();
+
+void STXzpf();
+void STXzpyf();
+void STXabsf();
+
+void STXzpf();
+void STXzpxf();
+void STXabsf();
+
 typedef struct
 {
     byte code;
@@ -393,7 +408,62 @@ struct INSTRUCTIONS
     opcode DEY = { .code = 0x88, .op = &(DEYf), .len = 1, .time = 2 }; //DEcrement Y
     opcode INY = { .code = 0xc8, .op = &(INYf), .len = 1, .time = 2 }; //INcrement Y
 
+    //ROtate Left
+    opcode ROLacc = { .code = 0x2a, .op = &(ROLaccf), .len = 1, .time = 2 };
+    opcode ROLzp = { .code = 0x26, .op = &(ROLzpf), .len = 2, .time = 5 };
+    opcode ROLzpx = { .code = 0x36, .op = &(ROLzpxf), .len = 2, .time = 6 };
+    opcode ROLabs = { .code = 0x2e, .op = &(ROLabsf), .len = 3, .time = 6 };
+    opcode ROLabsx = { .code = 0x3e, .op = &(ROLabsxf), .len = 3, .time = 7 };
 
+    //ROtate Right
+    opcode RORacc = { .code = 0x6a, .op = &(RORaccf), .len = 1, .time = 2 };
+    opcode RORzp = { .code = 0x66, .op = &(RORzpf), .len = 2, .time = 5 };
+    opcode RORzpx = { .code = 0x76, .op = &(RORzpxf), .len = 2, .time = 6 };
+    opcode RORabs = { .code = 0x6e, .op = &(RORabsf), .len = 3, .time = 6 };
+    opcode RORabsx = { .code = 0x7e, .op = &(RORabsxf), .len = 3, .time = 7 };
+
+    //ReTurn from Interrupt
+    opcode RTI = { .code = 0x40, .op = &(RTIf), .len = 1, .time = 6 };
+
+    //ReTurn from Subroutine
+    opcode RTS = { .code = 0x60, .op = &(RTSf), .len = 1, .time = 6 };
+
+    //SuBtract with Carry
+    opcode SBCimm = { .code = 0xe9, .op = &(SBCimmf), .len = 2, .time = 2 };
+    opcode SBCzp = { .code = 0xe5, .op = &(SBCzpf), .len = 2, .time = 3 };
+    opcode SBCzpx = { .code = 0xf5, .op = &(SBCzpxf), .len = 2, .time = 4 };
+    opcode SBCabs = { .code = 0xed, .op = &(SBCabsf), .len = 3, .time = 4 };
+    opcode SBCabsx = { .code = 0xfd, .op = &(SBCabsxf), .len = 3, .time = 4 };
+    opcode SBCabsy = { .code = 0xf9, .op = &(SBCabsyf), .len = 3, .time = 4 };
+    opcode SBCindx = { .code = 0xe1, .op = &(SBCindxf), .len = 2, .time = 6 };
+    opcode SBCindy = { .code = 0xf1, .op = &(SBCindyf), .len = 2, .time = 5 };
+
+    //STore Accumulator
+    opcode STAzp = { .code = 0x85, .op = &(STAzpf), .len = 2, .time = 3 };
+    opcode STAzpx = { .code = 0x95, .op = &(STAzpxf), .len = 2, .time = 4 };
+    opcode STAabs = { .code = 0x8d, .op = &(STAabsf), .len = 3, .time = 4 };
+    opcode STAabsx = { .code = 0x9d, .op = &(STAabsxf), .len = 3, .time = 5 };
+    opcode STAabsy = { .code = 0x99, .op = &(STAabsyf), .len = 3, .time = 5 };
+    opcode STAindx = { .code = 0x81, .op = &(STAindxf), .len = 2, .time = 6 };
+    opcode STAindy = { .code = 0x91, .op = &(STAindyf), .len = 2, .time = 6 };
+
+    //stack instructions
+    opcode TXS = { .code = 0x9a, .op = &(TXSf), .len = 1, .time = 2 }; //Transfer X to Stack pointer
+    opcode TSX = { .code = 0xba, .op = &(TSXf), .len = 1, .time = 2 }; //Transfer Stack pointer to X
+    opcode PHA = { .code = 0x48, .op = &(PHAf), .len = 1, .time = 3 }; //PusH Accumulator
+    opcode PLA = { .code = 0x68, .op = &(PLAf), .len = 1, .time = 4 }; //PuLl (pop) Accumulator
+    opcode PHP = { .code = 0x08, .op = &(PHPf), .len = 1, .time = 3 }; //PusH Processor status
+    opcode PLP = { .code = 0x28, .op = &(PLPf), .len = 1, .time = 4 }; //PuLl (pop) Processor status
+
+    //STore X register
+    opcode STXzp = { .code = 0x86, .op = &(STXzpf), .len = 2, .time = 3 };
+    opcode STXzpy = { .code = 0x96, .op = &(STXzpyf), .len = 2, .time = 4 };
+    opcode STXabs = { .code = 0x8e, .op = &(STXabsf), .len = 3, .time = 4 };
+
+    //STore Y register
+    opcode STYzp = { .code = 0x84, .op = &(STYzpf), .len = 2, .time = 3 };
+    opcode STYzpy = { .code = 0x94, .op = &(STYzpyf), .len = 2, .time = 4 };
+    opcode STYabs = { .code = 0x8c, .oop = &(STYabsf), .len = 3, .time = 4 };
 }
 
 struct INSTRUCTIONS_EX {} //To be used for extensions
