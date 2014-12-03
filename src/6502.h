@@ -25,8 +25,11 @@
 #define CPU_H_INCLUDED
 
 #define bit bool
-#define byte int8_t
-#define word int16_t
+#define byte uint8_t
+#define word uint16_t
+
+#define LOWBYTE(w) (w&0xff00)>>2
+#define HIGHBYTE(w) w&0xff
 
 struct PFLAGS
 {
@@ -64,10 +67,20 @@ struct CPUMEM
 struct CPUREGS registers;
 struct CPUMEM memorymap;
 
+//Backend function prototypes
+byte* getpage(word address);
+
+byte readb(word address);
+word readw(word address);
+void write(word address, byte data);
+
+void writeblock(word start, byte* block, word len); //For loading large chunks of memory
+
 void reset();
 
 void interrupt(bool maskable);
 
+//Opcode function prototypes
 void ADCimmf();
 void ADCzpf();
 void ADCzpxf();

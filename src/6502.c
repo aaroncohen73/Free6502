@@ -27,7 +27,50 @@
 
 #include "6502.h"
 
-void reset()
+byte* getpage(word address)
 {
+    byte high = HIGHBYTE(address);
+    byte low = LOWBYTE(address);
+    byte* page;
 
+    if(high == 0 page = memorymap->zero;
+    else if(high == 1) page = memorymap->stack;
+    else page = memorymap->pages[high - 2];
+
+    return page;
+}
+
+byte readb(word address)
+{
+    byte* page = getpage(address);
+
+    return page[LOWBYTE(address)];
+}
+
+word readw(word address)
+{
+    byte* page = getpage(address);
+    byte low = page[LOWBYTE(address)];
+    byte high;
+
+    if(low == 0xff) high = page[0x00];
+    else high = page[LOWBYTE(address) + 1];
+
+    return (low << 2) + high;
+}
+
+void write(word address, byte data)
+{
+    byte* page = getpage(address);
+
+    page[LOWBYTE(address)] = data;
+}
+
+void writeblock(word start, byte* block, word len)
+{
+    int i;
+    for(i = 0; i < len; i++)
+    {
+        write(start + i, block[i]);
+    }
 }
