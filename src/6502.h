@@ -80,6 +80,9 @@ void reset();
 
 void interrupt(bool maskable);
 
+void next();
+void start();
+
 //Opcode function prototypes
 void ADCimmf();
 void ADCzpf();
