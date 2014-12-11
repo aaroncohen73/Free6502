@@ -74,3 +74,23 @@ void writeblock(word start, byte* block, word len)
         write(start + i, block[i]);
     }
 }
+
+void next()
+{
+    switch(readb(registers.pc))
+    {
+        case 0x69: //Example
+            opcodes.ADCimm.op();
+            registers.pc += opcodes.ADCimm.len;
+            break;
+        default:
+            fprintf(stderr, "Opcode not implemented!");
+            break;
+    }
+}
+
+void start()
+{
+    reset();
+    next();
+}
