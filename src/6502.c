@@ -59,7 +59,7 @@ word readw(word address)
     return (low << 2) + high;
 }
 
-void write(word address, byte data)
+void writeb(word address, byte data)
 {
     byte* page = getpage(address);
 
@@ -75,10 +75,67 @@ void writeblock(word start, byte* block, word len)
     }
 }
 
+void pushb(byte b)
+{
+    memorymap->stack[registers.sp--} = b;
+}
+
+void pushw(word w)
+{
+    pushb(HIGHBYTE(w));
+    pushb(LOWBYTE(w));
+}
+
+void pull(byte* b)
+{
+    if(registers.sp != 0xff)
+    {
+	*b = memorymap->stack[registers.sp++];
+    }else
+    {
+	fprintf(stderr, "Stack underflow!");
+    }
+}
+
+void jump(word address)
+{
+    registers.pc = address;
+}
+
+void jumpi(word address)
+{
+    registers.pc = readw(address);
+}
+
+void reset()
+{
+    registers.ac = 0;
+    registers.x = 0;
+    registers.y = 0;
+    registers.sp = 0xfd;
+    jump(0xfcff);
+}
+
+void interrupt(int type)
+{
+    if(type == 0 && !registers.p.i)
+	{
+	    pushw(registers.pc);
+	    pushp(registers.p, 0);
+	    jump(0xfeff);
+	}
+    else
+	{
+	    pushw(registers.pc);
+	    pushp(registers.p, (type == 2)?1:0);
+	    jump(0xfaff);
+	}
+}
+
 void next()
 {
     switch(readb(registers.pc))
-    {
+	{
         case 0x69: //Example
             opcodes.ADCimm.op();
             registers.pc += opcodes.ADCimm.len;
@@ -86,7 +143,7 @@ void next()
         default:
             fprintf(stderr, "Opcode not implemented!");
             break;
-    }
+	}
 }
 
 void start()

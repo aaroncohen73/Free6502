@@ -31,6 +31,9 @@
 #define LOWBYTE(w) (w&0xff00)>>2
 #define HIGHBYTE(w) w&0xff
 
+#define LITTLE(w) (HIGHBYTE(w) << 2) + (LOWBYTE(w))
+#define BIG(w) LITTLE(w)
+
 struct PFLAGS
 {
     bit n; //Negative bit
@@ -72,13 +75,27 @@ byte* getpage(word address);
 
 byte readb(word address);
 word readw(word address);
-void write(word address, byte data);
+
+void writeb(word address, byte data);
 
 void writeblock(word start, byte* block, word len); //For loading large chunks of memory
 
+void pushb(byte b);
+void pushw(word w);
+void pushp(struct PFLAGS p, bool b);
+void pullb(byte* b);
+
+void jump(word address);
+void jumpi(word address);
+
 void reset();
 
-void interrupt(bool maskable);
+/*
+ * 0 - Maskable Interrupt (/irq)
+ * 1 - Non-Maskable Interrupt (/nmi)
+ * 2 - Break Instruction (brk)
+ */
+void interrupt(int type);
 
 void next();
 void start();
