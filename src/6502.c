@@ -88,13 +88,7 @@ void pushw(word w)
 
 void pull(byte* b)
 {
-    if(registers.sp != 0xff)
-    {
 	*b = memorymap->stack[registers.sp++];
-    }else
-    {
-	fprintf(stderr, "Stack underflow!");
-    }
 }
 
 void jump(word address)
