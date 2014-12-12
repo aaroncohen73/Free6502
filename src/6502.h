@@ -21,6 +21,10 @@
   * SOFTWARE.
   */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 #ifndef CPU_H_INCLUDED
 #define CPU_H_INCLUDED
 
