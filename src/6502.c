@@ -71,7 +71,7 @@ void writeblock(word start, byte* block, word len)
     int i;
     for(i = 0; i < len; i++)
     {
-        write(start + i, block[i]);
+        writeb(start + i, block[i]);
     }
 }
 
@@ -88,7 +88,7 @@ void pushw(word w)
 
 void pull(byte* b)
 {
-	*b = memorymap->stack[registers.sp++];
+    *b = memorymap->stack[registers.sp++];
 }
 
 void jump(word address)
@@ -128,16 +128,10 @@ void interrupt(int type)
 
 void next()
 {
-    switch(readb(registers.pc))
-	{
-        case 0x69: //Example
-            opcodes.ADCimm.op();
-            registers.pc += opcodes.ADCimm.len;
-            break;
-        default:
-            fprintf(stderr, "Opcode not implemented!");
-            break;
-	}
+    opcode o;
+    
+    o.op();
+    registers.pc += o.len();
 }
 
 void start()

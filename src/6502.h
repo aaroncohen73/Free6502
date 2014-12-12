@@ -104,6 +104,20 @@ void interrupt(int type);
 void next();
 void start();
 
+void ADC(byte src, byte* dest);
+void AND(byte src, byte* dest);
+void ASL(byte* dest);
+void BIT(byte b1, byte b2); //b1 == b2
+void CMP(byte b1, byte b2); //b1 <= b2
+void EOR(byte src, byte* dest);
+void LSR(byte* dest);
+void ORA(byte src, byte* dest);
+void ROL(byte* dest);
+void ROR(byte* dest);
+void SBC(byte src, byte* dest);
+
+void MOV(byte src, byte* dest); //Generic function for moving memory around
+
 //Opcode function prototypes
 void ADCimmf();
 void ADCzpf();
@@ -130,7 +144,7 @@ void ASLabsf();
 void ASLabsxf();
 
 void BITzpf();
-void BITabsf();
+void BITabsf(); 
 
 void BPLf();
 void BMIf();
