@@ -139,3 +139,182 @@ void start()
     reset();
     next();
 }
+
+void ADC(byte src, byte* dest)
+{
+    if((src | *dest < 0x80 && src + *dest >= 0x80) || //If src + *dest > 127
+       (src & *dest >= 0x80 && src + *dest < 0x80)) //If src + *dest < -128
+	registers.p.v = true;
+    
+    if(registers.p.d)
+	{
+	    byte low = LOWNIBBLE(src) + LOWNIBBLE(*dest);
+	    byte high = HIGHNIBBLE(src) + HIGHNIBBLE(*dest);
+
+	    if(low >= 10)
+		{
+		    high++;
+		    low %= 10;
+		}
+	    if(high >= 10)
+		{
+		    registers.p.c = true;
+		    high %= 10;
+		}
+
+	    *dest = (high << 4) + low;
+	}
+    else
+	{
+	    word result_safe = src + *dest;
+
+	    if(result_safe > 0xff)
+		{
+		    registers.p.c = true;
+		    result_safe &= 0xff;
+		}
+
+	    *dest = (byte) result_safe;
+	}
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void AND(byte src, byte* dest)
+{
+    *dest &= src;
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void ASL(byte* dest)
+{
+    word dest_safe = (word) *dest << 1;
+    *dest = dest_safe & 0xff;
+    
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(dest_safe)) registers.p.n = true;
+    if(dest_safe & 0x100) registers.p.c = true;
+}
+
+void BIT(byte b1, byte b2)
+{
+    byte result = b1 & b2;
+
+    if(result == 0) registers.p.z = true;
+    if(result & 0x80) registers.p.n = true;
+    if(result & 0x40) registers.p.v = true;
+}
+
+void CMP(byte b1, byte b2)
+{
+    if(b1 >= b2) registers.p.c = true;
+    if(b1 == b2) registers.p.z = true;
+    if(NEGATIVE(b1)) registers.p.n = true;
+}
+
+void EOR(byte src, byte* dest)
+{
+    *dest ^= src;
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void LSR(byte* dest)
+{
+    word dest_safe = (word) *dest << 7;
+    
+    *dest = (dest_safe & 0xff00) >> 8;
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+    if(dest_safe & 0x80) registers.p.c = true;
+}
+
+void ORA(byte src, byte* dest)
+{
+    *dest |= src;
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void ROL(byte* dest)
+{
+    word dest_safe = (word) *dest << 1;
+
+    *dest = (dest_safe & 0xff) + registers.p.c;
+    registers.p.c = dest_safe & 0x100;
+    
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+    
+}
+
+void ROR(byte* dest)
+{
+    word dest_safe = (word) *dest << 7;
+
+    *dest = (dest_safe & 0xff) + (registers.p.c << 7);
+    registers.p.c = dest_safe & 0x80;
+    
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void SBC(byte src, byte* dest) //I think it will work, but if it crashes and burns, this is probably the issue
+{   
+    registers.p.c = true;
+
+    if((src | *dest < 0x80 && src + *dest >= 0x80) || //If src + *dest > 127
+       (src & *dest >= 0x80 && src + *dest < 0x80)) //If src + *dest < -128
+	registers.p.v = true;
+    
+    if(registers.p.d)
+	{
+	    byte low = LOWNIBBLE(*dest) - LOWNIBBLE(src);
+	    byte high = HIGHNIBBLE(*dest) - HIGHNIBBLE(src);
+
+	    if(low > 0xf)
+		{
+		    high--;
+		    low &= 0xf;
+		}
+	    if(high > 0xf)
+		{
+		    registers.p.c = false;
+		    high &= 0xf;
+		}
+
+	    *dest = (high << 4) + low;
+	}
+    else
+	{
+	    word result_safe = *dest - src;
+
+	    if(result_safe > 0xff)
+		{
+		    registers.p.c = false;
+		    result_safe &= 0xff;
+		}
+
+	    *dest = (byte) result_safe;
+	}
+
+    if(*dest == 0) registers.p.z = true;
+    if(NEGATIVE(*dest)) registers.p.n = true;
+}
+
+void MOV(byte src, byte* dest, bool ld)
+{
+    *dest = src;
+
+    if(ld) //If this is an ld* instruction
+	{
+	    if(*dest == 0) registers.p.z = true;
+	    if(NEGATIVE(*dest)) registers.p.n = true;
+	}
+}

@@ -23,7 +23,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef CPU_H_INCLUDED
 #define CPU_H_INCLUDED
@@ -32,11 +34,16 @@
 #define byte uint8_t
 #define word uint16_t
 
-#define LOWBYTE(w) (w&0xff00)>>2
-#define HIGHBYTE(w) w&0xff
+#define LOWBYTE(w) (byte) (w&0xff00)>>8
+#define HIGHBYTE(w) (byte) w&0xff
 
-#define LITTLE(w) (HIGHBYTE(w) << 2) + (LOWBYTE(w))
+#define LOWNIBBLE(b) b&0xf
+#define HIGHNIBBLE(b) (b&0xf0)>>4
+
+#define LITTLE(w) (HIGHBYTE(w) << 8) + (LOWBYTE(w))
 #define BIG(w) LITTLE(w)
+
+#define NEGATIVE(b) b&0x80
 
 struct PFLAGS
 {
@@ -56,7 +63,7 @@ struct CPUREGS
     byte y; //General purpose Y register
     byte ac; //Accumulator
     struct PFLAGS p; //Processor status flags
-    byte sp = 0xff; //Stack pointer
+    byte sp; //Stack pointer
     word pc; //Program Counter
 }
 
@@ -97,7 +104,7 @@ void reset();
 /*
  * 0 - Maskable Interrupt (/irq)
  * 1 - Non-Maskable Interrupt (/nmi)
- * 2 - Break Instruction (brk)
+ * 2 - Break Instruction (BRK)
  */
 void interrupt(int type);
 
@@ -116,7 +123,7 @@ void ROL(byte* dest);
 void ROR(byte* dest);
 void SBC(byte src, byte* dest);
 
-void MOV(byte src, byte* dest); //Generic function for moving memory around
+void MOV(byte src, byte* dest); //Generic function for moving memory around (Used in T**, LD*, etc.)
 
 //Opcode function prototypes
 void ADCimmf();
