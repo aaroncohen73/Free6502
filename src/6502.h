@@ -23,22 +23,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef CPU_H_INCLUDED
 #define CPU_H_INCLUDED
 
-#define bit bool
-#define byte uint8_t
-#define word uint16_t
+typedef bit bool;
+typedef byte uint8_t;
+typedef word uint16_t;
 
-#define LOWBYTE(w) (w&0xff00)>>2
-#define HIGHBYTE(w) w&0xff
-
-#define LITTLE(w) (HIGHBYTE(w) << 2) + (LOWBYTE(w))
-#define BIG(w) LITTLE(w)
-
-struct PFLAGS
+struct PFLAGS //Processor Status Word (Though technically a byte. Whatever)
 {
     bit n; //Negative bit
     bit v; //Overflow bit
@@ -50,26 +46,53 @@ struct PFLAGS
     bit c; //Carry bit
 }
 
-struct CPUREGS
+struct CPUREGS //CPU Registers
 {
     byte x; //General purpose X register
     byte y; //General purpose Y register
     byte ac; //Accumulator
     struct PFLAGS p; //Processor status flags
-    byte sp = 0xff; //Stack pointer
+    byte sp; //Stack pointer
     word pc; //Program Counter
 }
 
-struct CPUMEM
+struct CPUMEM //Memory map. Technically segmented, but you can pretty much do anything at any address
 {
     byte* zero; //0x0000-0x00ff
     byte* stack; //0x0100-0x01ff
-    //NOTE: In Atari 2600, 0x0080-0x00ff is same as 0x0180-0x01ff. For Atari emulators, should be implemented
+    //In Atari 2600, 0x0080-0x00ff is same as 0x0180-0x01ff. For Atari emulators, should be implemented
     byte** pages = byte*[254]; //Memory pages from 0x0200-0xffff
-    //NOTE: 0xfffa-0xfffb is address of Non-Maskable Interrupt routine (NMI)
-    //NOTE: 0xfffc-0xfffd is address of Reset routine (RST)
-    //NOTE: 0xfffe-0xffff is address of Maskable Interrupt Request routine (IRQ)
+    //0xfffa-0xfffb is address of the Non-Maskable Interrupt routine (NMI)
+    //0xfffc-0xfffd is address of the Reset routine (RST)
+    //0xfffe-0xffff is address of the Maskable Interrupt Request routine (IRQ)
 }
+
+//Helper macros
+#define LOWBYTE(w) (byte) (w&0xff00)>>8 //Little endian makes my head hurt. Why does it even exist?
+#define HIGHBYTE(w) (byte) w&0xff
+
+#define LOWNIBBLE(b) b&0xf
+#define HIGHNIBBLE(b) (b&0xf0)>>4
+
+#define ISBYTE(b) (sizeof(b) == 1)
+#define BtoW(low, high) (low << 8) + high //Turning two bytes into a little endian word
+
+#define PtoB(p, brk) (p.n << 7 + p.v << 6 + 1 << 5 + brk << 4 + p.d << 3 + p.i << 2 + p.z << 1 + p.c) //PFLAGS to byte (For pushing onto the stack)
+#define BtoP(b) (struct PFLAGS) {		        \ //Byte to PFLAGS (For pulling from the stack)
+                .n = b & 0x80,				\
+	        .v = b & 0x40,				\
+	        .d = b & 0x8,				\
+	        .i = b & 0x4,				\
+	        .z = b & 0x2,				\
+		     .c = b & 0x1 }
+
+#define LITTLE(w) BtoW(HIGHBYTE(w), LOWBYTE(w))
+#define BIG(w) LITTLE(w) //Syntactic sugar. Just switching the bytes anyway
+
+#define NEGATIVE(b) b&0x80 //Testing for a signed twos-complement byte
+
+#define WORDPLUS(w, i) LITTLE(BIG(w) + i) //For adding to a little endian word.
+#define WORDPLUSWORD(w1, w2) WORDPLUS(w1, BIG(w2)) //Operator overloading would have made this so much easier
 
 struct CPUREGS registers;
 struct CPUMEM memorymap;
@@ -78,6 +101,7 @@ struct CPUMEM memorymap;
 byte* getpage(word address);
 
 byte readb(word address);
+byte* readbp(word address); //Returns a pointer (For ops like ROL, etc.)
 word readw(word address);
 
 void writeb(word address, byte data);
@@ -86,8 +110,10 @@ void writeblock(word start, byte* block, word len); //For loading large chunks o
 
 void pushb(byte b);
 void pushw(word w);
-void pushp(struct PFLAGS p, bool b);
+void pushp(struct PFLAGS p, bool b); //Push PFLAGS
 void pullb(byte* b);
+void pullw(word* w);
+void pullp(struct PFLAGS* p); //Pull PFLAGS
 
 void jump(word address);
 void jumpi(word address);
@@ -97,12 +123,28 @@ void reset();
 /*
  * 0 - Maskable Interrupt (/irq)
  * 1 - Non-Maskable Interrupt (/nmi)
- * 2 - Break Instruction (brk)
+ * 2 - Break Instruction (BRK)
  */
 void interrupt(int type);
 
 void next();
 void start();
+
+void ADC(byte src, byte* dest);
+void AND(byte src, byte* dest);
+void ASL(byte* dest);
+void BIT(byte b1, byte b2); //b1 == b2
+void CMP(byte b1, byte b2); //b1 <= b2
+void DEC(byte* dest);
+void EOR(byte src, byte* dest);
+void INC(byte* dest);
+void LSR(byte* dest);
+void ORA(byte src, byte* dest);
+void ROL(byte* dest);
+void ROR(byte* dest);
+void SBC(byte src, byte* dest);
+
+void MOV(byte src, byte* dest); //Generic function for moving memory around (Used for T**, LD*, etc.)
 
 //Opcode function prototypes
 void ADCimmf();
@@ -130,7 +172,7 @@ void ASLabsf();
 void ASLabsxf();
 
 void BITzpf();
-void BITabsf();
+void BITabsf(); 
 
 void BPLf();
 void BMIf();
@@ -245,11 +287,11 @@ void ROLzpxf();
 void ROLabsf();
 void ROLabsxf();
 
-void ROLaccf();
-void ROLzpf();
-void ROLzpxf();
-void ROLabsf();
-void ROLabsxf();
+void RORaccf();
+void RORzpf();
+void RORzpxf();
+void RORabsf();
+void RORabsxf();
 
 void RTIf();
 
@@ -278,7 +320,7 @@ void STXzpf();
 void STXzpxf();
 void STXabsf();
 
-typedef struct
+typedef struct //Typedef because it looks nicer
 {
     byte code;
     void (*op)();
@@ -287,7 +329,7 @@ typedef struct
     int time;
 } opcode;
 
-struct INSTRUCTIONS
+struct INSTRUCTIONS //Lots of stuff
 {
     //ADd with Carry
     opcode ADCimm = { .code = 0x69, .op = &(ADCimmf), .len = 2, .time = 2 };
@@ -503,6 +545,6 @@ struct INSTRUCTIONS
     opcode STYabs = { .code = 0x8c, .oop = &(STYabsf), .len = 3, .time = 4 };
 }
 
-struct INSTRUCTIONS_EX {} //To be used for extensions
+struct INSTRUCTIONS_EX {} //To be used for extensions (Probably not being used any time soon)
 
 #endif // CPU_H_INCLUDED
